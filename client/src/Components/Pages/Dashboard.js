@@ -14,10 +14,28 @@ const Dashboard = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const [search, setSearch] = useState("");
   const [limit, setLimit] = useState(10);
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500); // 500ms debounce delay
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [search]);
 
   const fetchUsers = async () => {
     const response = await axios.get("http://localhost:5000/api/users", {
-      params: { page, limit, sortBy, sortOrder, search, ...filters }
+      params: {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        search: debouncedSearch,
+        ...filters
+      }
     });
     setUsers(response.data.users);
     setTotalPages(response.data.totalPages);
@@ -25,15 +43,22 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, filters, sortBy, sortOrder, search, limit]);
+  }, [page, filters, sortBy, sortOrder, debouncedSearch, limit]);
 
   const handleFilterChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
+    setPage(1); // Reset to page 1 whenever a filter changes
   };
 
   const handleSortChange = (e) => {
     setSortBy(e.target.value);
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    setPage(1); // Reset to page 1 whenever sorting changes
+  };
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setPage(1); // Reset to page 1 whenever search input changes
   };
 
   const handlePageChange = (pageNumber) => {
@@ -45,6 +70,7 @@ const Dashboard = () => {
     setSortBy("");
     setSortOrder("asc");
     setSearch("");
+    setDebouncedSearch("");
     setPage(1);
     setLimit(10);
   };
@@ -81,7 +107,7 @@ const Dashboard = () => {
                 type="text"
                 placeholder="Search by name, email, phone, location..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={handleSearchChange}
               />
             </Form.Group>
           </Col>
@@ -165,32 +191,40 @@ const Dashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
-              <tr key={user._id}>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>{user.phone}</td>
-                <td>{user.role}</td>
-                <td>{user.batch}</td>
-                <td>{user.registeredYear}</td>
-                <td>
-                  {user.country}, {user.state}, {user.state}
-                </td>
-                <td className="d-flex gap-3">
-                  <Link to={`/update-user/${user._id}`}>
-                    <Button variant="warning" className="mr-2">
-                      <FaEdit /> Edit
+            {users.length > 0 ? (
+              users.map((user) => (
+                <tr key={user._id}>
+                  <td>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td>{user.phone}</td>
+                  <td>{user.role}</td>
+                  <td>{user.batch}</td>
+                  <td>{user.registeredYear}</td>
+                  <td>
+                    {user.country}, {user.state}, {user.state}
+                  </td>
+                  <td className="d-flex gap-3">
+                    <Link to={`/update-user/${user._id}`}>
+                      <Button variant="warning" className="mr-2">
+                        <FaEdit /> Edit
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="danger"
+                      onClick={() => handleDelete(user._id)}
+                    >
+                      <FaTrash /> Delete
                     </Button>
-                  </Link>
-                  <Button
-                    variant="danger"
-                    onClick={() => handleDelete(user._id)}
-                  >
-                    <FaTrash /> Delete
-                  </Button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="8" className="text-center">
+                  No data available
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </Table>
       </div>
