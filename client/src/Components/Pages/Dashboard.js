@@ -79,7 +79,7 @@ const Dashboard = () => {
               <Form.Label>Search</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Search by name, email, phone"
+                placeholder="Search by name, email, phone, location..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -160,6 +160,7 @@ const Dashboard = () => {
               <th>Role</th>
               <th>Batch</th>
               <th>Registered Year</th>
+              <th>Location</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -172,6 +173,9 @@ const Dashboard = () => {
                 <td>{user.role}</td>
                 <td>{user.batch}</td>
                 <td>{user.registeredYear}</td>
+                <td>
+                  {user.country}, {user.state}, {user.state}
+                </td>
                 <td className="d-flex gap-3">
                   <Link to={`/update-user/${user._id}`}>
                     <Button variant="warning" className="mr-2">
@@ -190,7 +194,7 @@ const Dashboard = () => {
           </tbody>
         </Table>
       </div>
-      <Pagination className="pt-3">
+      <Pagination className="pt-3 d-flex justify-content-center">
         {[...Array(totalPages).keys()].map((number) => (
           <Pagination.Item
             key={number + 1}

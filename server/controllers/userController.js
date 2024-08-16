@@ -58,7 +58,10 @@ exports.getUsers = async (req, res) => {
       filters.$or = [
         { name: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } },
-        { phone: { $regex: search, $options: "i" } }
+        { phone: { $regex: search, $options: "i" } },
+        { country: { $regex: search, $options: "i" } },
+        { state: { $regex: search, $options: "i" } },
+        { city: { $regex: search, $options: "i" } }
       ];
     }
 
