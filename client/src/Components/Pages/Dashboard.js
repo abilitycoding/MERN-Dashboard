@@ -47,18 +47,15 @@ const Dashboard = () => {
 
   const handleFilterChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
-    setPage(1); // Reset to page 1 whenever a filter changes
   };
 
   const handleSortChange = (e) => {
     setSortBy(e.target.value);
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    setPage(1); // Reset to page 1 whenever sorting changes
   };
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
-    setPage(1); // Reset to page 1 whenever search input changes
   };
 
   const handlePageChange = (pageNumber) => {

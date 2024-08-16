@@ -14,13 +14,7 @@ exports.createUser = async (req, res) => {
 // Get users with pagination, filtering, sorting, and search
 exports.getUsers = async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 10,
-      sortBy,
-      sortOrder = "asc",
-      search
-    } = req.query;
+    let { page = 1, limit = 10, sortBy, sortOrder = "asc", search } = req.query;
     const {
       batch,
       role,
@@ -53,7 +47,7 @@ exports.getUsers = async (req, res) => {
     if (state) filters.state = state;
     if (country) filters.country = country;
 
-    // Search by name, email, or phone
+    // Search by name, email, phone, country, state, or city
     if (search) {
       filters.$or = [
         { name: { $regex: search, $options: "i" } },
@@ -71,18 +65,24 @@ exports.getUsers = async (req, res) => {
       sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
     }
 
+    // Count total documents matching the filters
+    const count = await User.countDocuments(filters);
+
+    // Check if the requested page has any results, if not reset to page 1
+    const totalPages = Math.ceil(count / parsedLimit);
+    if (page > totalPages) {
+      page = 1;
+    }
+
     // Fetch users with filters, pagination, and sorting
     const users = await User.find(filters)
       .sort(sortOptions)
       .skip((page - 1) * parsedLimit)
       .limit(parsedLimit);
 
-    // Count total documents matching the filters
-    const count = await User.countDocuments(filters);
-
     res.json({
       users,
-      totalPages: Math.ceil(count / parsedLimit),
+      totalPages,
       currentPage: parseInt(page)
     });
   } catch (error) {
